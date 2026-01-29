@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@layer base {
+  /* Compatibility overrides for html2canvas which doesn't support oklch colors */
+  .print-content {
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    
+    --color-indigo-50: #eef2ff;
+    --color-indigo-100: #e0e7ff;
+    --color-indigo-600: #4f46e5;
+    --color-indigo-700: #4338ca;
+    
+    background-color: white !important;
+    color: #0f172a !important;
+  }
+
+  @media print {
+    /* Hide non-essential UI */
+    nav, 
+    .print\:hidden,
+    button,
+    .no-print {
+      display: none !important;
+    }
+
+    /* Reset body and main container for print */
+    body, html {
+      background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+    }
+
+    #root, 
+    .min-h-screen,
+    main {
+      margin: 0 !important;
+      padding: 0 !important;
+      display: block !important;
+      width: 100% !important;
+      max-width: none !important;
+    }
+
+    /* Ensure the printable content is visible and clean */
+    .print-content {
+      display: block !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 20px !important;
+      border: none !important;
+      box-shadow: none !important;
+      position: static !important;
+      background-color: white !important;
+    }
+
+    .option-container {
+      border: 1px solid #e2e8f0 !important;
+      background-color: white !important;
+    }
+
+    .option-container * {
+      color: #334155 !important;
+    }
+
+    /* Force visibility of text and colors */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+
+    /* Prevent page breaks inside questions */
+    .question-block {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      margin-bottom: 2rem !important;
+      display: block !important;
+    }
+  }
+}
