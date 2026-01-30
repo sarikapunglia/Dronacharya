@@ -25,6 +25,9 @@ jobs:
         run: npm run build
 
       # This assumes Capacitor is initialized and the android platform is added
+      - name: Add Android Platform
+        run: npx cap add android
+       
       - name: Sync Capacitor Android
         run: npx cap sync android
 
@@ -37,8 +40,9 @@ jobs:
 
       - name: Decode Keystore
         run: |
+          mkdir -p android/app
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
-
+          
       - name: Build Android Bundle (AAB)
         run: |
           cd android
