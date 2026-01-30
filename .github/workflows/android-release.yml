@@ -40,8 +40,9 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          # This 'tr' command removes any accidental spaces or newlines
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | tr -d '[:space:]' | base64 --decode > android/release.keystore
+          # We save the secret to a temporary file first to keep it clean
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | tr -d '[:space:]' > keystore.txt
+          base64 --decode keystore.txt > android/release.keystore
 
       - name: Build Android Bundle (AAB)
         run: |
