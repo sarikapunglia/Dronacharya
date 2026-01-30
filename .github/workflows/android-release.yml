@@ -3,7 +3,7 @@ name: Android Release
 on:
   push:
     tags:
-      - 'v*' # Trigger when you push a tag like v1.0.0
+      - 'v*'
 
 jobs:
   deploy:
@@ -24,25 +24,25 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      # This assumes Capacitor is initialized and the android platform is added
-      - name: Add Android Platform
-        run: npx cap add android
-       
-      - name: Sync Capacitor Android
-        run: npx cap sync android
+      - name: Add Android Platform if missing
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: android
+          cache: gradle
 
       - name: Decode Keystore
         run: |
           mkdir -p android/app
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
-          
+
       - name: Build Android Bundle (AAB)
         run: |
           cd android
