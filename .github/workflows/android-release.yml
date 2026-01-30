@@ -3,7 +3,7 @@ name: Android Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*' # Trigger when you push a tag like v1.0.0
 
 jobs:
   deploy:
@@ -42,14 +42,11 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          # Remove all whitespace and decode
           echo "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > android/release.keystore
-          
-          # Check if the file is valid
           FILE_SIZE=$(stat -c%s "android/release.keystore")
           echo "Keystore file created. Size: $FILE_SIZE bytes"
           if [ $FILE_SIZE -lt 100 ]; then
-            echo "ERROR: Keystore file is too small! Your ANDROID_KEYSTORE_BASE64 secret might be wrong."
+            echo "ERROR: Keystore file is too small! Check ANDROID_KEYSTORE_BASE64 secret."
             exit 1
           fi
 
@@ -72,8 +69,22 @@ jobs:
         run: gem install fastlane
 
       - name: Upload to Google Play (Internal Track)
+        env:
+          PLAY_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
-          echo "${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}" > google-play-key.json
+          if [ -z "$PLAY_JSON" ]; then
+            echo "ERROR: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret is empty!"
+            exit 1
+          fi
+          echo "$PLAY_JSON" > google-play-key.json
+          
+          # Verify the JSON is valid
+          if ! jq . google-play-key.json > /dev/null 2>&1; then
+            echo "ERROR: The content of GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is NOT valid JSON."
+            echo "Make sure you pasted the ENTIRE content of the JSON file, including the { and }."
+            exit 1
+          fi
+
           fastlane supply \
             --aab android/app/build/outputs/bundle/release/app-release.aab \
             --json_key google-play-key.json \
