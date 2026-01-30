@@ -59,6 +59,14 @@ jobs:
             -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
 
+      - name: Upload AAB Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dronacharya-app-bundle
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: warn
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
