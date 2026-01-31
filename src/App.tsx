@@ -16,7 +16,8 @@ import {
   Target,
   AlertCircle,
   Loader2,
-  Download
+  Download,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { generateQuestions, evaluateAnswers, Question } from './services/geminiService';
@@ -25,12 +26,14 @@ import { Student, Test } from './types';
 import { cn } from './lib/utils';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import IconGenerator from './components/IconGenerator';
 
 const App: React.FC = () => {
   const [student, setStudent] = useState<Student | null>(null);
-  const [view, setView] = useState<'login' | 'dashboard' | 'generate' | 'test-view' | 'enter-answers' | 'history'>('login');
+  const [view, setView] = useState<'login' | 'dashboard' | 'generate' | 'test-view' | 'enter-answers' | 'history' | 'icons'>('login');
   const [history, setHistory] = useState<Test[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
   
   // Form states
   const [loginForm, setLoginForm] = useState({ name: '', age: '', className: '' });
@@ -44,7 +47,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initData = async () => {
-      await dataService.init();
+      try {
+        await dataService.init();
+      } catch (err: any) {
+        console.error("Data init failed:", err);
+        setInitError(err.message || "Database initialization failed");
+      }
     };
     initData();
   }, []);
@@ -54,6 +62,24 @@ const App: React.FC = () => {
       fetchHistory();
     }
   }, [student]);
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 text-center">
+        <div className="bg-white p-8 rounded-2xl shadow-xl border border-red-100 max-w-md">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Initialization Error</h1>
+          <p className="text-slate-600 mb-4">{initError}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const fetchHistory = async () => {
     if (!student) return;
@@ -293,6 +319,13 @@ const App: React.FC = () => {
                 >
                   <History className="w-4 h-4" /> History
                 </button>
+                <button 
+                  onClick={() => setView('icons')}
+                  className={cn("flex items-center gap-2 px-3 py-2 rounded-md transition-colors", 
+                    view === 'icons' ? "text-indigo-600 bg-indigo-50 font-medium" : "text-slate-600 hover:text-indigo-600 hover:bg-slate-50")}
+                >
+                  <Sparkles className="w-4 h-4" /> Design Lab
+                </button>
               </div>
 
               <div className="flex items-center gap-4">
@@ -376,6 +409,16 @@ const App: React.FC = () => {
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Get Started'}
                   </button>
                 </form>
+
+                <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+                  <p className="text-sm text-slate-500 mb-4">Need an app icon for the Play Store?</p>
+                  <button 
+                    onClick={() => setView('icons')}
+                    className="text-indigo-600 font-bold hover:underline flex items-center justify-center gap-2 mx-auto"
+                  >
+                    <Sparkles className="w-4 h-4" /> Open Design Lab
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -859,6 +902,27 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
+            </motion.div>
+          )}
+
+          {/* Icon Design Lab View */}
+          {view === 'icons' && (
+            <motion.div
+              key="icons"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="mb-6 flex justify-between items-center">
+                <button 
+                  onClick={() => setView(student ? 'dashboard' : 'login')}
+                  className="text-indigo-600 font-bold flex items-center gap-2 hover:underline"
+                >
+                  ← Back to {student ? 'Dashboard' : 'Login'}
+                </button>
+              </div>
+              <IconGenerator />
             </motion.div>
           )}
         </AnimatePresence>
